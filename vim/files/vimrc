@@ -1,0 +1,200 @@
+set nocompatible                                " be iMproved, required
+so ~/.vim/plugins.vim                           " Add plugins list
+
+syntax on
+" colorscheme nord
+let g:onedark_terminal_italics=1                " Let color scheme to use italic style
+set termguicolors
+set background=dark
+set cursorline                                  " Enables a highlighting for current line
+
+" Set default color, use autocmd to change the colors on insert and normal modes
+highlight CursorLineNr cterm=bold ctermfg=black ctermbg=green
+
+" Enable vim distribution plugins specefic for different file types
+filetype plugin on
+filetype indent on
+
+set ai                                          " enable auto indenting
+set number                                      " make line numbering on
+set expandtab                                   " Replace tabs with spaces.
+set tabstop=4                                   " Width (size) of each tab in insert mode.
+set shiftwidth=4                                " Width of tab in normal mode, when using  >> and <<.
+set updatetime=150                              " change vim's update time from 40000 (4s) to 100
+set scrolloff=6                                 " Scroll before reaching the end of file
+set colorcolumn=88                              " Add a line on 88th column to
+set signcolumn=yes                              " Adds a gutter for linters, gitgutter
+set showcmd                                     " Show commadns like '0 while being typed at bottom left
+set hidden                                      " Let switch between buffers even if they have unsaved changes
+
+set clipboard=unnamedplus
+
+" mkdir -p $HOME/.vim/swapfiles
+set directory=$HOME/.vim/swaps//                " Save swap files in this path. // is necessary to create
+                                                " swp files with the full path. this path should exist.
+                                                " vim does not create it automatically.
+" set nohlsearch                                " Disable highlighting matches after search is done
+set incsearch                                   " Enable incremental search
+set ignorecase                                  " Ignore case while searching
+set smartcase                                   " But become case sensitive if there are capital chars in search
+set nostartofline                               " While switching between buffers remember the position of cursor
+
+" Automatically source the .vimrc after save
+augroup autosourcing
+    autocmd!
+    autocmd BufWritePost .vimrc,~/.vim/plugins.vim,~/.vim/plugins_config.vim source %
+    autocmd BufRead,BufNewFile Dockerfile* setfiletype dockerfile
+augroup end
+
+" Change CursorLineNr in insert and normal mode
+augroup CursorLineNr
+    autocmd!
+    autocmd InsertEnter * highlight CursorLineNr cterm=bold ctermfg=black ctermbg=blue
+    autocmd InsertLeave * highlight CursorLineNr cterm=bold ctermfg=black ctermbg=green
+augroup END
+
+" Set some settings based on file type
+augroup fileTypeSpecificSettings
+    autocmd!
+    autocmd FileType javascript setlocal tabstop=2 softtabstop=2 shiftwidth=2
+    autocmd FileType htmldjango,html,vue setlocal tabstop=2 softtabstop=2 shiftwidth=2
+    autocmd FileType rst setlocal tabstop=3 softtabstop=3 shiftwidth=3
+    autocmd FileType vim setlocal textwidth=0 " stop lines from being wraped
+    autocmd FileType gitcommit setlocal colorcolumn=72
+augroup END
+
+" Automatically update links on read diary
+augroup vimwikigroup
+    autocmd!
+    autocmd BufRead,BufNewFile diary.wiki VimwikiDiaryGenerateLinks
+augroup end
+
+" Type ABBR then press enter to complete
+abbr _sh #!/bin/bash
+abbr _py #!/usr/bin/env python
+abbr _php <?php
+"
+" Change <leader> from default \ to ,
+let mapleader = ','
+
+" Easier usage of Marks.
+" ` --> Goes to where cursor was while we marked the line
+" ' --> Goes to the start of line. let it do as ` does.
+nnoremap ' `
+
+" Map <leader> + 1-9 to jump to respective tab
+let i = 1
+while i < 10
+  execute ":nmap <leader>" . i . " :tabn " . i . "<CR>"
+  let i += 1
+endwhile
+
+" Faster switch between previous buffer
+noremap H  <c-^>
+
+" Toggle line numebrs
+nnoremap <leader>N :set number!<CR>
+
+" Make Y work like C or D
+nnoremap Y  y$
+
+" Keep things centered
+nnoremap J  mzJ`z        " While merging lines together
+" nnoremap n  nzz          " While searching forwward
+" nnoremap N  N          " While searching backward
+
+" Add relative jumps (nj/nk: 4j) to jump list so <c-o> and <c-i> works after using them
+nnoremap <expr> k (v:count > 4 ? "m'" . v:count : "") . 'k'
+nnoremap <expr> j (v:count > 4 ? "m'" . v:count : "") . 'j'
+
+" Move text to above, bellow lines
+vnoremap <silent> J     :m '>+1<CR>gv=gv
+vnoremap <silent> K     :m '<-2<CR>gv=gv
+inoremap <C-j>              <esc>:m .+1<CR>==i
+inoremap <C-k>              <esc>:m .-2<CR>==i
+" nnoremap <leader>j :m .+1<CR>==
+" nnoremap <leader>k :m .-2<CR>==
+
+" Go to next line which is not commented
+nnoremap <leader><F3>   :/^[^#"]<cr>
+
+" Fix loosing syntax highlighting
+nnoremap <silent><leader><F2>   :syntax sync fromstart<cr>
+
+" Same as above
+vmap <silent> <leader>y :w !xsel -b <CR><CR>
+nmap <silent> <leader>p :r !xsel -bo <CR><CR>
+
+" Open Vim related files in a new tab: vimrc, plugins, plugconfig, notes.
+nnoremap <leader>ev     :tabedit $MYVIMRC<cr>
+nnoremap <leader>ep     :tabedit ~/.vim/plugins.vim<cr>
+nnoremap <leader>ec     :tabedit ~/.vim/plugins_config.vim<cr>
+nnoremap <leader>en     :tabedit ~/Documents/Docs/VimWiki/VimNotes.wiki<cr>
+
+" Redo from C-r (used by CtrlP) to leaedr r
+nnoremap <leader>r      :redo<cr>
+
+" Disable highlited words after search
+nnoremap <cr>           :nohlsearch<cr>
+
+nnoremap S              :%s//g<left><left>
+
+
+" Search for a tag
+nmap <leader>t      :tag<space>
+
+" Change new splits positions to below and right
+set splitbelow                  " new hsplit at the below
+set splitright                  " new vsplit at the right
+
+" Move around splits using Ctrl+(hljk)
+nnoremap <c-j> <c-w><c-j>
+nnoremap <c-k> <c-w><c-k>
+nnoremap <c-h> <c-w><c-h>
+nnoremap <c-l> <c-w><c-l>
+
+" Normal mode
+no <up> <Nop>
+no <down> <Nop>
+no <left> <Nop>
+no <right> <Nop>
+
+" Insert mode
+ino <up> <Nop>
+ino <down> <Nop>
+ino <left> <Nop>
+ino <right> <Nop>
+
+" Disable mouse wheel to fix lines being changed while typing
+
+" Enable mouse in insert mode so two settings below works
+set mouse=i
+
+" Disable wheelup and down in insert mode (mouse should be enabled)
+inoremap <ScrollWheelUp> <Nop>
+inoremap <ScrollWheelDown> <Nop>
+
+let $FZF_DEFAULT_COMMAND = 'rg --files --hidden --glob "!.git/*"'
+
+
+" Fuzzy file finder Without file preview
+nnoremap <leader>f :FZF<cr>
+
+" With file preview
+nnoremap <leader>F :Files<cr>
+
+" Lines in current buffer
+nnoremap <leader>l :BLines<cr>
+
+" Lines in all open buffers
+nnoremap <leader>L :Lines<cr>
+
+" Pattern in All files
+nnoremap <leader>R :Rg<cr>
+
+nnoremap <leader>b :Buffers<cr>
+nnoremap <leader>s :Snippets<cr>
+nnoremap <leader>c :BCommits<cr>
+nnoremap <leader>: :Commands<cr>
+nnoremap <leader>` :Marks<cr>
+nnoremap <leader>ht :Helptags<cr>
