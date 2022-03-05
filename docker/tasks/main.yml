@@ -1,0 +1,64 @@
+---
+
+- name: install basic  requirements
+  apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: latest
+    update_cache: yes
+
+- name: Add proxy.conf (APT proxy specific for docker repositories)
+  copy:
+    dest: "/etc/apt/apt.conf.d/proxy.conf"
+    src: proxy.conf
+    mode: 0640
+    backup: yes
+
+- name: Add docker's public keys
+  copy:
+    dest: /usr/share/keyrings/docker-archive-keyring.gpg
+    src: docker-archive-keyring.gpg
+    mode: 0666
+
+- name: Add docker deb repositories
+  template:
+    src: docker.list
+    dest: /etc/apt/sources.list.d/docker.list
+
+- name: Install docker and related packages
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+    state: latest
+    update_cache: yes
+
+- name: Ensure "../docker.service.d" exists. prerequisite to set proxy for docker.
+  file:
+    path: "/etc/systemd/system/docker.service.d"
+    state: directory
+    recurse: no
+    mode: 0750
+
+- name: Copy proxy settings for docker dameon to use
+  copy:
+    dest: "/etc/systemd/system/docker.service.d/http-proxy.conf"
+    src: http-proxy.conf
+    mode: 0640
+    backup: yes
+
+- name: Restart docker service and issue a daemon-reload to pick up config changes
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker
+
+- name: Adding user {{ user }}
+  user: name={{ user }}
+        group={{ user }}
+        groups=docker
+        append=yes
